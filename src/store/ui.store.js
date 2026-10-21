@@ -4,17 +4,19 @@ import { persist } from 'zustand/middleware'
 export const useUIStore = create(
   persist(
     (set) => ({
-      leadView: 'board', // 'board' | 'list'
+      leadsViewMode: 'table', // 'table' | 'kanban'
+      leadView: 'list',
       sidebarOpen: false,
       commandPaletteOpen: false,
 
+      setLeadsViewMode: (mode) => set({ leadsViewMode: mode }),
       setLeadView: (view) => set({ leadView: view }),
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
       setCommandPaletteOpen: (open) => set({ commandPaletteOpen: open }),
     }),
     {
       name: 'ui-store',
-      partialize: (s) => ({ leadView: s.leadView }),
+      partialize: (s) => ({ leadsViewMode: s.leadsViewMode }),
     }
   )
 )

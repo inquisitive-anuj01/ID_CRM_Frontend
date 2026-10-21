@@ -26,7 +26,26 @@ import {
 import { toast } from 'sonner'
 
 export function LeadsPage() {
-  const { leadsViewMode, setLeadsViewMode } = useUIStore()
+  const { setLeadsViewMode } = useUIStore()
+
+  // Default to 'table', persist in localStorage and sync with store
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      return localStorage.getItem('idcrm_leads_view') || 'table'
+    } catch {
+      return 'table'
+    }
+  })
+
+  const handleViewChange = (mode) => {
+    setViewMode(mode)
+    try {
+      localStorage.setItem('idcrm_leads_view', mode)
+    } catch {}
+    if (typeof setLeadsViewMode === 'function') {
+      setLeadsViewMode(mode)
+    }
+  }
 
   const [filters, setFilters] = useState({
     search: '',
@@ -38,7 +57,7 @@ export function LeadsPage() {
   })
 
   const [selectedLeadId, setSelectedLeadId] = useState(null)
-  const [detailModalOpen, setDetailModalOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [createInitialData, setCreateInitialData] = useState(null)
   const [selectedIds, setSelectedIds] = useState([])
@@ -56,7 +75,7 @@ export function LeadsPage() {
 
   const handleLeadClick = (lead) => {
     setSelectedLeadId(lead._id)
-    setDetailModalOpen(true)
+    setDrawerOpen(true)
   }
 
   const handleAddLeadWithStatus = (statusKey) => {
@@ -114,31 +133,33 @@ export function LeadsPage() {
         description="Monitor pipeline conversion, schedule followups, and close deals"
         actions={
           <div className="flex items-center gap-2">
-            {/* View Switcher */}
-            <div className="flex items-center rounded-lg border border-border bg-surface p-0.5">
+            {/* View Switcher: Table vs Kanban */}
+            <div className="flex items-center rounded-xl border border-border bg-surface-2 p-1 gap-1 shadow-sm">
               <button
-                onClick={() => setLeadsViewMode('table')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                  leadsViewMode === 'table'
-                    ? 'bg-brand text-black shadow-sm'
-                    : 'text-text-muted hover:text-text'
+                type="button"
+                onClick={() => handleViewChange('table')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'table'
+                    ? 'bg-brand text-black shadow-sm font-black'
+                    : 'text-text-muted hover:text-text hover:bg-surface'
                 }`}
                 aria-label="Table View"
               >
                 <TableIcon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Table</span>
+                <span>Table</span>
               </button>
               <button
-                onClick={() => setLeadsViewMode('kanban')}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                  leadsViewMode === 'kanban'
-                    ? 'bg-brand text-black shadow-sm'
-                    : 'text-text-muted hover:text-text'
+                type="button"
+                onClick={() => handleViewChange('kanban')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'kanban'
+                    ? 'bg-brand text-black shadow-sm font-black'
+                    : 'text-text-muted hover:text-text hover:bg-surface'
                 }`}
                 aria-label="Kanban View"
               >
                 <LayoutGrid className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Kanban</span>
+                <span>Kanban</span>
               </button>
             </div>
 
@@ -197,15 +218,45 @@ export function LeadsPage() {
       </div>
 
       {/* Main View Area */}
-      {leadsViewMode === 'kanban' ? (
-        <KanbanBoard
-          boardData={boardData}
-          onLeadClick={handleLeadClick}
-          onAddLeadWithStatus={handleAddLeadWithStatus}
-          onStatusModalRequired={(lead, targetStatus) => {
-            setDragStatusTarget({ lead, targetStatus })
-          }}
-        />
+      {viewMode === 'kanban' ? (
+        <div className="space-y-6">
+          {/* Jira-style Kanban Metric Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+              <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Total</span>
+              <p className="text-2xl font-black text-text mt-1">{meta?.total || leads.length}</p>
+            </div>
+            <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+              <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Done</span>
+              <p className="text-2xl font-black text-emerald-500 mt-1">
+                {boardData.find((c) => ['won', 'confirm', 'done'].includes(c.status?.key || c.status))?.leads?.length || 0}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+              <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">Overdue</span>
+              <p className="text-2xl font-black text-rose-500 mt-1">
+                {leads.filter((l) => l.overdueMinutes > 0 || (l.nextFollowupDate && new Date(l.nextFollowupDate) < new Date())).length}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+              <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">In Progress</span>
+              <p className="text-2xl font-black text-amber-500 mt-1">
+                {boardData.find((c) => ['in_progress', 'processing', 'contacted', 'visited'].includes(c.status?.key || c.status))?.leads?.length || 0}
+              </p>
+            </div>
+          </div>
+
+          {/* Kanban Board */}
+          <KanbanBoard
+            boardData={boardData}
+            isLoading={boardLoading}
+            onLeadClick={handleLeadClick}
+            onAddLeadWithStatus={handleAddLeadWithStatus}
+            onStatusModalRequired={(lead, targetStatus) => {
+              setDragStatusTarget({ lead, targetStatus })
+            }}
+          />
+        </div>
       ) : (
         <LeadTable
           leads={leads}
@@ -221,13 +272,13 @@ export function LeadsPage() {
         />
       )}
 
-      {/* Lead Details Modal with Progress & Followups */}
+      {/* Lead Details Drawer (Desktop: Right Sidebar, Mobile: Bottom Drawer) */}
       {selectedLeadId && (
-        <LeadDetailModal
+        <LeadDrawer
           leadId={selectedLeadId}
-          open={detailModalOpen}
+          open={drawerOpen}
           onClose={() => {
-            setDetailModalOpen(false)
+            setDrawerOpen(false)
             setSelectedLeadId(null)
           }}
         />

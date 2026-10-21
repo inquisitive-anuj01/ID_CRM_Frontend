@@ -14,8 +14,17 @@ import { leadsApi } from '@/api/leads.api'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
+const DEFAULT_STATUSES = [
+  { key: 'new', name: 'New', color: '#3B82F6' },
+  { key: 'processing', name: 'Processing', color: '#EAB308' },
+  { key: 'visited', name: 'Visited', color: '#F97316' },
+  { key: 'confirm', name: 'Confirm', color: '#10B981' },
+  { key: 'cancel', name: 'Cancel', color: '#EF4444' },
+]
+
 export function KanbanBoard({
   boardData = [],
+  isLoading = false,
   onLeadClick,
   onStatusModalRequired,
   onAddLeadWithStatus,
@@ -32,10 +41,17 @@ export function KanbanBoard({
     })
   )
 
-  // Find all active columns: combine registered statuses with backend board data
-  const columnsList = statuses.length > 0
-    ? statuses
-    : boardData.map((b) => (typeof b.status === 'object' ? b.status : { key: b.status, name: b.status }))
+  // Use loaded statuses, or board data statuses, or default CRM statuses
+  let columnsList = []
+  if (statuses.length > 0) {
+    columnsList = statuses
+  } else if (boardData.length > 0) {
+    columnsList = boardData.map((b) =>
+      typeof b.status === 'object' ? b.status : { key: b.status, name: b.status }
+    )
+  } else {
+    columnsList = DEFAULT_STATUSES
+  }
 
   const handleDragStart = (event) => {
     const { active } = event
