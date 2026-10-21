@@ -1,8 +1,11 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/auth.store'
 
+export const API_HOST = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
+export const API_BASE = API_HOST ? `${API_HOST}/api/v1` : '/api/v1'
+
 const http = axios.create({
-  baseURL: '/api/v1',
+  baseURL: API_BASE,
   withCredentials: true,
 })
 
@@ -46,7 +49,7 @@ http.interceptors.response.use(
       config._retry = true
       try {
         refreshing ??= axios
-          .post('/api/v1/auth/refresh', {}, { withCredentials: true })
+          .post(`${API_BASE}/auth/refresh`, {}, { withCredentials: true })
           .then((r) => {
             useAuthStore.getState().setToken(r.data?.data?.accessToken)
           })

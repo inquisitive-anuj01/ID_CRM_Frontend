@@ -49,7 +49,7 @@ export function FollowupCard({ followup }) {
           <Music className="h-4 w-4 text-brand shrink-0" />
           <audio
             controls
-            src={audioFile.url || `/api/v1/files/${followup._id}/${audioFile._id}`}
+            src={audioFile.url?.startsWith('http') ? audioFile.url : `${(import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')}${audioFile.url || `/api/v1/files/${followup._id}/${audioFile._id}`}`}
             className="w-full h-8 max-w-sm"
           />
         </div>
@@ -58,18 +58,21 @@ export function FollowupCard({ followup }) {
       {/* File attachments */}
       {otherFiles.length > 0 && (
         <div className="flex flex-wrap gap-2 pt-1">
-          {otherFiles.map((file, idx) => (
-            <a
-              key={idx}
-              href={file.url || `/api/v1/files/${followup._id}/${file._id}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-2 border border-border text-[11px] font-medium text-text hover:text-brand transition-colors"
-            >
-              <Paperclip className="h-3 w-3 text-text-muted" />
-              <span className="truncate max-w-[140px]">{file.originalName || file.originalname || file.filename || 'Attachment'}</span>
-            </a>
-          ))}
+          {otherFiles.map((file, idx) => {
+            const fileHref = file.url?.startsWith('http') ? file.url : `${(import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')}${file.url || `/api/v1/files/${followup._id}/${file._id}`}`
+            return (
+              <a
+                key={idx}
+                href={fileHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-2 border border-border text-[11px] font-medium text-text hover:text-brand transition-colors"
+              >
+                <Paperclip className="h-3 w-3 text-text-muted" />
+                <span className="truncate max-w-[140px]">{file.originalName || file.originalname || file.filename || 'Attachment'}</span>
+              </a>
+            )
+          })}
         </div>
       )}
 
