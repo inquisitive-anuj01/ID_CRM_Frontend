@@ -25,13 +25,12 @@ export function LoginPage() {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'admin@365crm.com',
-      password: 'ChangeMe@123',
+      email: '',
+      password: '',
     },
   })
 
@@ -93,7 +92,7 @@ export function LoginPage() {
                 <Input
                   {...register('email')}
                   type="email"
-                  placeholder="name@company.com"
+                  placeholder="your email address"
                   error={errors.email?.message}
                   className="pl-10 bg-[#181818] border-[#2E2E2E] text-white focus:border-brand"
                 />
@@ -102,19 +101,14 @@ export function LoginPage() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-white/90">
-                  Password
-                </label>
-                <span className="text-[11px] text-brand/80 cursor-pointer hover:underline">
-                  Default: ChangeMe@123
-                </span>
-              </div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-white/90 mb-1.5">
+                Password
+              </label>
               <div className="relative">
                 <Input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••••••"
+                  placeholder="your password"
                   error={errors.password?.message}
                   className="pl-10 pr-10 bg-[#181818] border-[#2E2E2E] text-white focus:border-brand"
                 />
@@ -147,22 +141,12 @@ export function LoginPage() {
             </div>
           </form>
 
-          {/* Quick Demo Login Pill */}
-          <div className="mt-6 pt-5 border-t border-[#262626] flex items-center justify-between text-xs text-[#CAD5E2]">
+          {/* Secure access note */}
+          <div className="mt-6 pt-5 border-t border-[#262626] flex items-center justify-center text-xs text-[#CAD5E2]">
             <span className="flex items-center gap-1.5 text-xs text-white/70">
               <ShieldCheck className="h-4 w-4 text-brand" />
               Role-based secure access
             </span>
-            <button
-              type="button"
-              onClick={() => {
-                setValue('email', 'admin@365crm.com')
-                setValue('password', 'ChangeMe@123')
-              }}
-              className="text-xs font-semibold text-brand hover:underline"
-            >
-              Fill Admin Demo
-            </button>
           </div>
         </div>
       </div>
