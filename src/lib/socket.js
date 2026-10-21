@@ -6,7 +6,8 @@ let socket = null
 export function getSocket() {
   if (socket) return socket
 
-  socket = io('/', {
+  const socketUrl = import.meta.env.VITE_API_URL || '/'
+  socket = io(socketUrl, {
     withCredentials: true,
     autoConnect: false,
     transports: ['websocket', 'polling'],
