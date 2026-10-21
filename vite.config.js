@@ -13,15 +13,15 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: 'https://id-crm-backend.vercel.app',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:8000',
+        target: 'https://id-crm-backend.vercel.app',
         changeOrigin: true,
       },
       '/socket.io': {
-        target: 'http://localhost:8000',
+        target: 'https://id-crm-backend.vercel.app',
         ws: true,
       },
     },
