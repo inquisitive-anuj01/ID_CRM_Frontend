@@ -1,0 +1,60 @@
+/* ============================================================
+   tokens.css – Design tokens for ID CRM
+   Brand: Inquisitive Digital · Black + #DEB104 · Be Vietnam Pro
+   ============================================================ */
+
+/* Light mode (default) */
+:root {
+  --bg:          #FAF9F5;
+  --surface:     #FFFFFF;
+  --surface-2:   #F4F2EA;
+  --border:      #E7E3D3;
+  --text:        #0A0A0A;
+  --text-muted:  #5B6270;
+  --brand:       #DEB104;
+  --brand-hover: #C79E00;
+  --brand-ink:   #0A0A0A;
+  --brand-text:  #8F6406;
+  --pop-shadow:  #0A0A0A;
+  --danger:      #DC2626;
+  --success:     #16A34A;
+  --info:        #0284C7;
+  --warn:        #D97706;
+
+  /* Status colors */
+  --status-new:       #38BDF8;
+  --status-processing:#DEB104;
+  --status-closeby:   #A3E635;
+  --status-visited:   #2DD4BF;
+  --status-confirm:   #22C55E;
+  --status-cancel:    #F87171;
+  --status-transfer:  #A78BFA;
+}
+
+/* Dark mode (DEFAULT – matches website) */
+:root.dark {
+  --bg:          #0A0A0A;
+  --surface:     #121212;
+  --surface-2:   #181818;
+  --border:      #262626;
+  --text:        #FFFFFF;
+  --text-muted:  #CAD5E2;
+  --brand:       #DEB104;
+  --brand-hover: #F2C61A;
+  --brand-ink:   #0A0A0A;
+  --brand-text:  #DEB104;
+  --pop-shadow:  #3A3A3A;
+  --danger:      #F87171;
+  --success:     #4ADE80;
+  --info:        #38BDF8;
+  --warn:        #FBBF24;
+
+  /* Status colors */
+  --status-new:       #38BDF8;
+  --status-processing:#DEB104;
+  --status-closeby:   #A3E635;
+  --status-visited:   #2DD4BF;
+  --status-confirm:   #22C55E;
+  --status-cancel:    #F87171;
+  --status-transfer:  #A78BFA;
+}
