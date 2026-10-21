@@ -17,8 +17,8 @@ import { leadsApi } from '@/api/leads.api'
 import { AlertCircle } from 'lucide-react'
 
 export function LeadFormModal({ open, onClose, initialData = null, onSuccess }) {
-  const isEdit = Boolean(initialData)
-  const { createLead } = useLeadMutations()
+  const isEdit = Boolean(initialData?._id)
+  const { createLead, updateLead } = useLeadMutations()
   const { statuses } = useStatuses()
   const { sources } = useSources()
   const { labels } = useLabels()

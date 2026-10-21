@@ -6,6 +6,7 @@ import { LeadFilters } from './LeadFilters'
 import { LeadTable } from './LeadTable'
 import { KanbanBoard } from './KanbanBoard'
 import { LeadDrawer } from './LeadDrawer'
+import { LeadDetailModal } from './modals/LeadDetailModal'
 import { LeadFormModal } from './LeadFormModal'
 import { AssignModal } from './modals/AssignModal'
 import { StatusModal } from './modals/StatusModal'
@@ -37,8 +38,9 @@ export function LeadsPage() {
   })
 
   const [selectedLeadId, setSelectedLeadId] = useState(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [detailModalOpen, setDetailModalOpen] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [createInitialData, setCreateInitialData] = useState(null)
   const [selectedIds, setSelectedIds] = useState([])
 
   // Bulk modals
@@ -54,7 +56,12 @@ export function LeadsPage() {
 
   const handleLeadClick = (lead) => {
     setSelectedLeadId(lead._id)
-    setDrawerOpen(true)
+    setDetailModalOpen(true)
+  }
+
+  const handleAddLeadWithStatus = (statusKey) => {
+    setCreateInitialData({ status: statusKey })
+    setCreateModalOpen(true)
   }
 
   const handleSelectToggle = (id) => {
@@ -194,6 +201,7 @@ export function LeadsPage() {
         <KanbanBoard
           boardData={boardData}
           onLeadClick={handleLeadClick}
+          onAddLeadWithStatus={handleAddLeadWithStatus}
           onStatusModalRequired={(lead, targetStatus) => {
             setDragStatusTarget({ lead, targetStatus })
           }}
@@ -206,17 +214,20 @@ export function LeadsPage() {
           onSelectToggle={handleSelectToggle}
           onSelectAll={handleSelectAll}
           onLeadClick={handleLeadClick}
-          onAddLead={() => setCreateModalOpen(true)}
+          onAddLead={() => {
+            setCreateInitialData(null)
+            setCreateModalOpen(true)
+          }}
         />
       )}
 
-      {/* Lead Details Drawer */}
+      {/* Lead Details Modal with Progress & Followups */}
       {selectedLeadId && (
-        <LeadDrawer
+        <LeadDetailModal
           leadId={selectedLeadId}
-          open={drawerOpen}
+          open={detailModalOpen}
           onClose={() => {
-            setDrawerOpen(false)
+            setDetailModalOpen(false)
             setSelectedLeadId(null)
           }}
         />
@@ -225,7 +236,11 @@ export function LeadsPage() {
       {/* Create Lead Modal */}
       <LeadFormModal
         open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
+        initialData={createInitialData}
+        onClose={() => {
+          setCreateModalOpen(false)
+          setCreateInitialData(null)
+        }}
         onSuccess={() => {
           refetch()
           refetchBoard()
