@@ -6,6 +6,7 @@ import { Stars } from '@/components/ui/Stars'
 import { Button } from '@/components/ui/Button'
 import { formatINR } from '@/lib/money'
 import { fmtDateTime } from '@/lib/dates'
+import { useStatuses } from '@/hooks/useMasters'
 
 export function Details({
   lead,
@@ -14,7 +15,14 @@ export function Details({
   onOpenLabels,
   onRatingChange,
 }) {
+  const { statuses = [] } = useStatuses()
+
   if (!lead) return null
+
+  const currentStatusKey = lead?.status?.key || (typeof lead?.status === 'string' ? lead?.status : '')
+  const matchedStatus = statuses.find((s) => s.key === currentStatusKey)
+  const statusDisplayName = matchedStatus?.name || (typeof lead?.status === 'object' ? lead?.status?.name : lead?.status) || 'New'
+  const statusColor = matchedStatus?.color || lead?.status?.color
 
   const cleanPhone = (lead.mobile || lead.phone || '').replace(/[^0-9]/g, '')
   const waNumber = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`
@@ -58,13 +66,10 @@ export function Details({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Status card */}
         <div className="p-3.5 rounded-xl border border-border bg-surface-2">
-          <div className="flex items-center justify-between mb-1.5">
+          <div className="mb-1.5">
             <span className="text-[11px] uppercase font-bold tracking-wider text-text-muted">Status</span>
-            <Button variant="ghost" size="xs" onClick={onOpenStatus} className="h-6 text-[11px] text-brand p-0 hover:bg-transparent hover:underline">
-              Change
-            </Button>
           </div>
-          <StatusPill status={lead.status?.name || lead.status} color={lead.status?.color} />
+          <StatusPill status={statusDisplayName} color={statusColor} />
           {lead.lossReason && (
             <p className="mt-1.5 text-[11px] text-danger">Reason: {lead.lossReason}</p>
           )}

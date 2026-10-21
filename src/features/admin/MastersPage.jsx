@@ -14,6 +14,7 @@ export function MastersPage() {
     createStatus,
     updateStatus,
     deleteStatus,
+    reorderStatuses,
   } = useStatuses(true)
 
   const {
@@ -21,6 +22,7 @@ export function MastersPage() {
     createSource,
     updateSource,
     deleteSource,
+    reorderSources,
   } = useSources()
 
   const {
@@ -28,6 +30,7 @@ export function MastersPage() {
     createLabel,
     updateLabel,
     deleteLabel,
+    reorderLabels,
   } = useLabels()
 
   const {
@@ -35,6 +38,7 @@ export function MastersPage() {
     createCategory,
     updateCategory,
     deleteCategory,
+    reorderCategories,
   } = useCategories()
 
   return (
@@ -73,6 +77,7 @@ export function MastersPage() {
             onCreate={createStatus}
             onUpdate={updateStatus}
             onDelete={deleteStatus}
+            onReorder={reorderStatuses}
             hasKey
             hasColor
           />
@@ -86,6 +91,7 @@ export function MastersPage() {
             onCreate={createSource}
             onUpdate={updateSource}
             onDelete={deleteSource}
+            onReorder={reorderSources}
           />
         </TabsContent>
 
@@ -97,6 +103,7 @@ export function MastersPage() {
             onCreate={createLabel}
             onUpdate={updateLabel}
             onDelete={deleteLabel}
+            onReorder={reorderLabels}
             hasColor
           />
         </TabsContent>
@@ -109,6 +116,7 @@ export function MastersPage() {
             onCreate={createCategory}
             onUpdate={updateCategory}
             onDelete={deleteCategory}
+            onReorder={reorderCategories}
           />
         </TabsContent>
       </Tabs>

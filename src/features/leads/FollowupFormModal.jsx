@@ -8,10 +8,19 @@ import { VoiceRecorder } from '@/components/ui/VoiceRecorder'
 import { Button } from '@/components/ui/Button'
 import { useCategories } from '@/hooks/useMasters'
 import { useFollowups } from '@/hooks/useFollowups'
+import { leadsApi } from '@/api/leads.api'
 import { computePolicy } from '@/lib/policy'
-import { PhoneCall, Calendar, Paperclip, Mic, ShieldAlert, CheckCircle2 } from 'lucide-react'
+import { toast } from 'sonner'
+import { PhoneCall, Calendar, Paperclip, Mic, ShieldAlert, CheckCircle2, ArrowRight } from 'lucide-react'
 
-export function FollowupFormModal({ open, onClose, lead, onSuccess }) {
+export function FollowupFormModal({
+  open,
+  onClose,
+  lead,
+  targetStatusKey,
+  targetStatusName,
+  onSuccess,
+}) {
   const { categories } = useCategories()
   const { createFollowup } = useFollowups()
 
@@ -35,7 +44,7 @@ export function FollowupFormModal({ open, onClose, lead, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!remarks.trim() && !audioBlob) {
-      alert('Please add remarks or record a voice note.')
+      toast.error('Please add discussion remarks or record a voice note.')
       return
     }
 
@@ -55,11 +64,22 @@ export function FollowupFormModal({ open, onClose, lead, onSuccess }) {
         formData.append('files', file)
       })
 
+      // 1. Create followup interaction
       await createFollowup({ leadId: lead._id, formData })
+
+      // 2. If transitioning status, update lead status now
+      if (targetStatusKey) {
+        await leadsApi.status(lead._id, { status: targetStatusKey })
+        toast.success(`Followup logged & lead moved to ${targetStatusName || targetStatusKey}!`)
+      } else {
+        toast.success('Followup logged successfully')
+      }
+
       if (onSuccess) onSuccess()
       onClose()
     } catch (err) {
       console.error(err)
+      toast.error(err.message || 'Failed to complete action')
     } finally {
       setSubmitting(false)
     }
@@ -69,10 +89,32 @@ export function FollowupFormModal({ open, onClose, lead, onSuccess }) {
     <Modal
       open={open}
       onClose={onClose}
-      title={`Log Followup: ${lead?.name || 'Lead'}`}
+      title={
+        targetStatusName
+          ? `Move Lead & Log Followup: ${lead?.customerName || lead?.name || 'Lead'}`
+          : `Log Followup: ${lead?.customerName || lead?.name || 'Lead'}`
+      }
       className="max-w-xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+        {/* Status Transition Alert Banner */}
+        {targetStatusName && (
+          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-brand/15 border border-brand/40 text-text text-xs">
+            <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-brand text-black font-black text-[11px] shrink-0">
+              <ArrowRight className="h-3 w-3" />
+            </span>
+            <div className="flex-1">
+              <span className="font-bold text-brand">Pipeline Transition: </span>
+              <span>
+                Move lead to <span className="font-bold underline text-text">{targetStatusName}</span>
+              </span>
+              <p className="text-[11px] text-text-muted mt-0.5">
+                A followup log is required before updating this lead's status.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Policy indicator pill */}
         {policy && (
           <div
@@ -149,7 +191,11 @@ export function FollowupFormModal({ open, onClose, lead, onSuccess }) {
             Cancel
           </Button>
           <Button type="submit" variant="solid" disabled={submitting}>
-            {submitting ? 'Saving Followup...' : 'Save Followup'}
+            {submitting
+              ? 'Saving...'
+              : targetStatusName
+              ? `Save Followup & Move to ${targetStatusName}`
+              : 'Save Followup'}
           </Button>
         </div>
       </form>

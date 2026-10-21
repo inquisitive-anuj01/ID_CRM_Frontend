@@ -93,12 +93,22 @@ export function useSources() {
     onError: (err) => toast.error(err.message || 'Failed to delete source'),
   })
 
+  const reorderMutation = useMutation({
+    mutationFn: (order) => mastersApi.reorderSources({ order }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.masters.sources })
+      toast.success('Sources reordered')
+    },
+    onError: (err) => toast.error(err.message || 'Failed to reorder sources'),
+  })
+
   return {
     sources: query.data || [],
     isLoading: query.isLoading,
     createSource: createMutation.mutateAsync,
     updateSource: updateMutation.mutateAsync,
     deleteSource: deleteMutation.mutateAsync,
+    reorderSources: reorderMutation.mutateAsync,
   }
 }
 
@@ -137,12 +147,22 @@ export function useLabels() {
     onError: (err) => toast.error(err.message || 'Failed to delete label'),
   })
 
+  const reorderMutation = useMutation({
+    mutationFn: (order) => mastersApi.reorderLabels({ order }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.masters.labels })
+      toast.success('Labels reordered')
+    },
+    onError: (err) => toast.error(err.message || 'Failed to reorder labels'),
+  })
+
   return {
     labels: query.data || [],
     isLoading: query.isLoading,
     createLabel: createMutation.mutateAsync,
     updateLabel: updateMutation.mutateAsync,
     deleteLabel: deleteMutation.mutateAsync,
+    reorderLabels: reorderMutation.mutateAsync,
   }
 }
 
@@ -181,12 +201,22 @@ export function useCategories() {
     onError: (err) => toast.error(err.message || 'Failed to delete category'),
   })
 
+  const reorderMutation = useMutation({
+    mutationFn: (order) => mastersApi.reorderCategories({ order }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.masters.categories })
+      toast.success('Categories reordered')
+    },
+    onError: (err) => toast.error(err.message || 'Failed to reorder categories'),
+  })
+
   return {
     categories: query.data || [],
     isLoading: query.isLoading,
     createCategory: createMutation.mutateAsync,
     updateCategory: updateMutation.mutateAsync,
     deleteCategory: deleteMutation.mutateAsync,
+    reorderCategories: reorderMutation.mutateAsync,
   }
 }
 

@@ -9,10 +9,9 @@ import {
 } from '@dnd-kit/core'
 import { KanbanColumn } from './KanbanColumn'
 import { LeadCard } from './LeadCard'
+import { FollowupFormModal } from './FollowupFormModal'
 import { useStatuses } from '@/hooks/useMasters'
-import { leadsApi } from '@/api/leads.api'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 
 const DEFAULT_STATUSES = [
   { key: 'new', name: 'New', color: '#3B82F6' },
@@ -32,6 +31,7 @@ export function KanbanBoard({
   const qc = useQueryClient()
   const { statuses = [] } = useStatuses()
   const [activeLead, setActiveLead] = useState(null)
+  const [pendingMove, setPendingMove] = useState(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -82,25 +82,21 @@ export function KanbanBoard({
     }
 
     if (!foundLead) return
-    const currentStatus = foundLead.status?.key || foundLead.status
+    const currentStatus = foundLead.status?.key || (typeof foundLead.status === 'string' ? foundLead.status : '')
     if (currentStatus === targetStatusKey) return
 
-    // If moving to cancel/lost, trigger terminal reason modal
-    if (targetStatusKey === 'cancel' || targetStatusKey === 'lost') {
-      if (onStatusModalRequired) {
-        onStatusModalRequired(foundLead, targetStatusKey)
-        return
-      }
-    }
+    // Find the target status display name
+    const targetStatusObj = columnsList.find(
+      (c) => (c.key || c._id) === targetStatusKey
+    )
+    const targetStatusName = targetStatusObj?.name || targetStatusKey
 
-    try {
-      await leadsApi.status(leadId, { status: targetStatusKey })
-      qc.invalidateQueries({ queryKey: ['leads'] })
-      qc.invalidateQueries({ queryKey: ['dashboard'] })
-      toast.success(`Lead moved to ${targetStatusKey.toUpperCase()}`)
-    } catch (err) {
-      toast.error(err.message || 'Failed to update status')
-    }
+    // MANDATORY FOLLOWUP: Open Followup modal first to require followup input before moving!
+    setPendingMove({
+      lead: foundLead,
+      targetStatusKey,
+      targetStatusName,
+    })
   }
 
   return (
@@ -141,6 +137,22 @@ export function KanbanBoard({
           </div>
         ) : null}
       </DragOverlay>
+
+      {/* Mandatory Followup Modal on Drag-and-Drop */}
+      {pendingMove && (
+        <FollowupFormModal
+          open={Boolean(pendingMove)}
+          lead={pendingMove.lead}
+          targetStatusKey={pendingMove.targetStatusKey}
+          targetStatusName={pendingMove.targetStatusName}
+          onClose={() => setPendingMove(null)}
+          onSuccess={() => {
+            setPendingMove(null)
+            qc.invalidateQueries({ queryKey: ['leads'] })
+            qc.invalidateQueries({ queryKey: ['dashboard'] })
+          }}
+        />
+      )}
     </DndContext>
   )
 }

@@ -24,7 +24,6 @@ import {
   History as HistoryIcon,
   User,
   List,
-  TrendingUp,
 } from 'lucide-react'
 
 export function LeadDrawer({ leadId, open, onClose }) {
@@ -69,7 +68,10 @@ export function LeadDrawer({ leadId, open, onClose }) {
 
   const cleanPhone = (lead?.mobile || lead?.phone || '').replace(/[^0-9]/g, '')
   const waNumber = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`
-  const currentStatusKey = lead?.status?.key || lead?.status
+  const currentStatusKey = lead?.status?.key || (typeof lead?.status === 'string' ? lead?.status : '')
+  const matchedStatus = statuses.find((s) => s.key === currentStatusKey)
+  const statusDisplayName = matchedStatus?.name || (typeof lead?.status === 'object' ? lead?.status?.name : lead?.status) || 'New'
+  const statusColor = matchedStatus?.color || lead?.status?.color
 
   return (
     <>
@@ -90,7 +92,7 @@ export function LeadDrawer({ leadId, open, onClose }) {
               <h2 className="text-lg font-black text-text truncate">
                 {lead?.customerName || lead?.name || 'Lead Details'}
               </h2>
-              {lead && <StatusPill status={lead.status?.name || lead.status} color={lead.status?.color} />}
+              {lead && <StatusPill status={statusDisplayName} color={statusColor} />}
             </div>
 
             {(lead?.companyName || lead?.company) && (
@@ -153,46 +155,6 @@ export function LeadDrawer({ leadId, open, onClose }) {
             </button>
           </div>
         </div>
-
-        {/* ── Interactive Pipeline Stage Progress Bar ── */}
-        {statuses.length > 0 && (
-          <div className="px-5 py-3 border-b border-border/80 bg-surface-2/40">
-            <div className="flex items-center justify-between pb-1.5 mb-1">
-              <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider flex items-center gap-1">
-                <TrendingUp className="h-3 w-3 text-brand" />
-                Pipeline Progress Stage
-              </span>
-              <button
-                onClick={() => setStatusModalOpen(true)}
-                className="text-[10px] font-bold text-brand hover:underline"
-              >
-                Change Stage
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-              {statuses.map((st, i) => {
-                const isCurrent = currentStatusKey === st.key
-                return (
-                  <button
-                    key={st.key}
-                    onClick={() => updateStatus({ status: st.key })}
-                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all shrink-0 border ${
-                      isCurrent
-                        ? 'bg-brand text-black border-brand shadow-sm font-black scale-105'
-                        : 'bg-surface text-text-muted hover:text-text border-border hover:border-brand/40'
-                    }`}
-                  >
-                    <span className="h-3.5 w-3.5 rounded-full bg-black/10 flex items-center justify-center text-[9px]">
-                      {i + 1}
-                    </span>
-                    <span>{st.name}</span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
 
         {/* Tabs & Content */}
         <div className="flex-1 overflow-y-auto p-5">

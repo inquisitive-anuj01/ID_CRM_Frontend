@@ -13,16 +13,19 @@ export const mastersApi = {
   createSource:   (d) => http.post('/sources', d),
   updateSource:   (id, d) => http.patch(`/sources/${id}`, d),
   deleteSource:   (id) => http.delete(`/sources/${id}`),
+  reorderSources: (d) => http.post('/sources/reorder', d),
 
   // Labels
   labels:         () => http.get('/labels'),
   createLabel:    (d) => http.post('/labels', d),
   updateLabel:    (id, d) => http.patch(`/labels/${id}`, d),
   deleteLabel:    (id) => http.delete(`/labels/${id}`),
+  reorderLabels:  (d) => http.post('/labels/reorder', d),
 
   // Followup categories
   categories:     () => http.get('/followup-categories'),
   createCategory: (d) => http.post('/followup-categories', d),
   updateCategory: (id, d) => http.patch(`/followup-categories/${id}`, d),
   deleteCategory: (id) => http.delete(`/followup-categories/${id}`),
+  reorderCategories: (d) => http.post('/followup-categories/reorder', d),
 }

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog'
-import { Plus, Edit2, Trash2, GripVertical } from 'lucide-react'
+import { Plus, Edit2, Trash2, GripVertical, ChevronUp, ChevronDown } from 'lucide-react'
 
 export function MasterTable({
   title,
@@ -13,6 +13,7 @@ export function MasterTable({
   onCreate,
   onUpdate,
   onDelete,
+  onReorder,
   hasColor = false,
   hasKey = false,
 }) {
@@ -20,6 +21,7 @@ export function MasterTable({
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [deleteTargetId, setDeleteTargetId] = useState(null)
+  const [reordering, setReordering] = useState(false)
 
   const [name, setName] = useState('')
   const [key, setKey] = useState('')
@@ -57,6 +59,29 @@ export function MasterTable({
     setModalOpen(false)
   }
 
+  const handleMove = async (index, direction) => {
+    if (!onReorder || reordering) return
+    const targetIndex = index + direction
+    if (targetIndex < 0 || targetIndex >= items.length) return
+
+    try {
+      setReordering(true)
+      const reordered = [...items]
+      const [moved] = reordered.splice(index, 1)
+      reordered.splice(targetIndex, 0, moved)
+
+      const payload = reordered.map((item, idx) => ({
+        id: item._id,
+        order: idx + 1,
+      }))
+      await onReorder(payload)
+    } catch (err) {
+      console.error('Reorder error:', err)
+    } finally {
+      setReordering(false)
+    }
+  }
+
   const confirmDelete = async () => {
     if (deleteTargetId) {
       await onDelete(deleteTargetId)
@@ -82,6 +107,7 @@ export function MasterTable({
         <table className="w-full text-left text-xs">
           <thead className="bg-surface-2 text-[11px] font-bold uppercase tracking-wider text-text-muted border-b border-border">
             <tr>
+              {onReorder && <th className="px-3 py-3 w-24 text-center">Order</th>}
               <th className="px-5 py-3">Name</th>
               {hasKey && <th className="px-5 py-3">Key</th>}
               {hasColor && <th className="px-5 py-3">Color Preview</th>}
@@ -91,13 +117,39 @@ export function MasterTable({
           <tbody className="divide-y divide-border">
             {items.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-5 py-6 text-center text-text-muted">
+                <td colSpan={hasKey && hasColor ? (onReorder ? 5 : 4) : 4} className="px-5 py-6 text-center text-text-muted">
                   No items configured.
                 </td>
               </tr>
             ) : (
-              items.map((item) => (
+              items.map((item, idx) => (
                 <tr key={item._id} className="hover:bg-surface-2/50 transition-colors">
+                  {onReorder && (
+                    <td className="px-3 py-3.5 text-center">
+                      <div className="inline-flex items-center gap-1 justify-center">
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          disabled={idx === 0 || reordering}
+                          onClick={() => handleMove(idx, -1)}
+                          title="Move Up"
+                          className="h-7 w-7 p-0 hover:bg-surface-2"
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          disabled={idx === items.length - 1 || reordering}
+                          onClick={() => handleMove(idx, 1)}
+                          title="Move Down"
+                          className="h-7 w-7 p-0 hover:bg-surface-2"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  )}
                   <td className="px-5 py-3.5 font-semibold text-text">
                     <div className="flex items-center gap-2">
                       {hasColor && (
