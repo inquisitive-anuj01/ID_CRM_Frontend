@@ -24,7 +24,7 @@ export function Details({
   const statusDisplayName = matchedStatus?.name || (typeof lead?.status === 'object' ? lead?.status?.name : lead?.status) || 'New'
   const statusColor = matchedStatus?.color || lead?.status?.color
 
-  const cleanPhone = (lead.mobile || lead.phone || '').replace(/[^0-9]/g, '')
+  const cleanPhone = (lead.mobileFull || lead.mobile || '').replace(/[^0-9]/g, '')
   const waNumber = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`
 
   return (
@@ -41,7 +41,7 @@ export function Details({
 
         {cleanPhone && (
           <a
-            href={`https://wa.me/${waNumber}?text=Hi%20${encodeURIComponent(lead.name || '')},`}
+            href={`https://wa.me/${waNumber}?text=Hi%20${encodeURIComponent(lead.customerName || lead.name || '')},`}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#25D366] text-white font-semibold hover:opacity-90 transition-opacity"
@@ -112,7 +112,7 @@ export function Details({
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div>
             <span className="text-text-muted">Phone:</span>
-            <p className="font-semibold text-text mt-0.5">{lead.mobile || lead.phone || '—'}</p>
+            <p className="font-semibold text-text mt-0.5">{lead.mobileFull || lead.mobile || '—'}</p>
           </div>
           <div>
             <span className="text-text-muted">Email:</span>

@@ -151,6 +151,21 @@ export function useLeadMutations() {
     onError: (err) => toast.error(err.message || 'Failed to create lead'),
   })
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => leadsApi.update(id, data),
+    onSuccess: (res) => {
+      // Invalidate the specific lead AND all list/board queries
+      const updatedId = res?.data?._id
+      if (updatedId) {
+        qc.invalidateQueries({ queryKey: qk.leads.one(updatedId) })
+      }
+      qc.invalidateQueries({ queryKey: ['leads'] })
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+      toast.success('Lead updated successfully')
+    },
+    onError: (err) => toast.error(err.message || 'Failed to update lead'),
+  })
+
   const bulkAssignMutation = useMutation({
     mutationFn: (data) => leadsApi.bulkAssign(data),
     onSuccess: () => {
@@ -171,6 +186,7 @@ export function useLeadMutations() {
 
   return {
     createLead: createMutation.mutateAsync,
+    updateLead: updateMutation.mutateAsync,
     bulkAssign: bulkAssignMutation.mutateAsync,
     bulkStatus: bulkStatusMutation.mutateAsync,
   }

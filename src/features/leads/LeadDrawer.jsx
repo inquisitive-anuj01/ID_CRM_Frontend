@@ -66,7 +66,7 @@ export function LeadDrawer({ leadId, open, onClose }) {
     onClose()
   }
 
-  const cleanPhone = (lead?.mobile || lead?.phone || '').replace(/[^0-9]/g, '')
+  const cleanPhone = (lead?.mobileFull || lead?.mobile || '').replace(/[^0-9]/g, '')
   const waNumber = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`
   const currentStatusKey = lead?.status?.key || (typeof lead?.status === 'string' ? lead?.status : '')
   const matchedStatus = statuses.find((s) => s.key === currentStatusKey)
@@ -103,7 +103,7 @@ export function LeadDrawer({ leadId, open, onClose }) {
             <div className="flex items-center gap-2 pt-1 flex-wrap">
               {lead?.mobile && (
                 <a
-                  href={`tel:${lead.mobile}`}
+                  href={`tel:${lead.mobileFull || lead.mobile}`}
                   className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-brand text-black font-bold text-[11px] hover:bg-brand/90 transition-colors shadow-sm"
                 >
                   <Phone className="h-3 w-3" />
@@ -112,7 +112,7 @@ export function LeadDrawer({ leadId, open, onClose }) {
               )}
               {cleanPhone && (
                 <a
-                  href={`https://wa.me/${waNumber}?text=Hi%20${encodeURIComponent(lead?.name || '')},`}
+                  href={`https://wa.me/${waNumber}?text=Hi%20${encodeURIComponent(lead?.customerName || lead?.name || '')},`}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#25D366] text-white font-bold text-[11px] hover:opacity-90 transition-opacity shadow-sm"
@@ -225,7 +225,7 @@ export function LeadDrawer({ leadId, open, onClose }) {
         open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleDelete}
-        leadName={lead?.name}
+        leadName={lead?.customerName || lead?.name}
       />
 
       <FollowupFormModal

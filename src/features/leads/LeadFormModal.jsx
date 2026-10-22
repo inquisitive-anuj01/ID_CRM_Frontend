@@ -133,7 +133,7 @@ export function LeadFormModal({ open, onClose, initialData = null, onSuccess }) 
       setSubmitting(true)
       const payload = buildPayload(values)
       if (isEdit) {
-        await leadsApi.update(initialData._id, payload)
+        await updateLead({ id: initialData._id, data: payload })
       } else {
         await createLead(payload)
       }
@@ -141,6 +141,7 @@ export function LeadFormModal({ open, onClose, initialData = null, onSuccess }) 
       onClose()
     } catch (err) {
       console.error(err)
+      // toast is handled by the mutation's onError
     } finally {
       setSubmitting(false)
     }
@@ -150,7 +151,7 @@ export function LeadFormModal({ open, onClose, initialData = null, onSuccess }) 
     <Modal
       open={open}
       onClose={onClose}
-      title={isEdit ? `Edit Lead: ${initialData?.name}` : 'Create New Lead'}
+      title={isEdit ? `Edit Lead: ${initialData?.customerName || initialData?.name || ''}` : 'Create New Lead'}
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
         {duplicateWarning && (
@@ -204,25 +205,52 @@ export function LeadFormModal({ open, onClose, initialData = null, onSuccess }) 
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Select
-            label="Pipeline Status"
-            {...register('status')}
-            options={statuses.map((s) => ({ value: s.key, label: s.name }))}
+          <Controller
+            name="status"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Pipeline Status"
+                value={field.value || ''}
+                onChange={(e) => field.onChange(e.target.value)}
+                options={[
+                  { value: '', label: 'Select status...' },
+                  ...statuses.map((s) => ({ value: s.key, label: s.name })),
+                ]}
+              />
+            )}
           />
 
-          <Select
-            label="Inbound Source"
-            {...register('source')}
-            options={sources.map((s) => ({ value: s._id, label: s.name }))}
+          <Controller
+            name="source"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Inbound Source"
+                value={field.value || ''}
+                onChange={(e) => field.onChange(e.target.value)}
+                options={[
+                  { value: '', label: 'Select source...' },
+                  ...sources.map((s) => ({ value: s._id, label: s.name })),
+                ]}
+              />
+            )}
           />
 
-          <Select
-            label="Assign To"
-            {...register('assignedTo')}
-            options={[
-              { value: '', label: 'Unassigned' },
-              ...userOptions.map((u) => ({ value: u._id, label: u.name })),
-            ]}
+          <Controller
+            name="assignedTo"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Assign To"
+                value={field.value || ''}
+                onChange={(e) => field.onChange(e.target.value)}
+                options={[
+                  { value: '', label: 'Unassigned' },
+                  ...userOptions.map((u) => ({ value: u._id, label: u.name })),
+                ]}
+              />
+            )}
           />
         </div>
 

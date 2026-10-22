@@ -76,7 +76,7 @@ export function LeadTable({
           <tbody className="divide-y divide-border">
             {leads.map((lead) => {
               const isSelected = selectedIds.includes(lead._id)
-              const cleanPhone = (lead.mobile || lead.phone || '').replace(/[^0-9]/g, '')
+              const cleanPhone = (lead.mobile || lead.mobileFull || '').replace(/[^0-9]/g, '')
               const waNumber = cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`
 
               return (
@@ -100,10 +100,10 @@ export function LeadTable({
                   <td className="px-4 py-3.5">
                     <div>
                       <span className="font-bold text-text hover:text-brand transition-colors">
-                        {lead.name}
+                        {lead.customerName || lead.name || '—'}
                       </span>
                       <div className="flex items-center gap-2 mt-0.5 text-[11px] text-text-muted">
-                        <span>{lead.mobile || lead.phone}</span>
+                        <span>{lead.mobileFull || lead.mobile}</span>
                         {cleanPhone && (
                           <a
                             href={`https://wa.me/${waNumber}`}
@@ -122,7 +122,7 @@ export function LeadTable({
 
                   {/* Company */}
                   <td className="px-4 py-3.5 text-text-muted">
-                    {lead.company || '—'}
+                    {lead.companyName || lead.company || '—'}
                   </td>
 
                   {/* Status */}
