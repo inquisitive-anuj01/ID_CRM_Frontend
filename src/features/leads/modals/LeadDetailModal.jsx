@@ -424,6 +424,7 @@ export function LeadDetailModal({ leadId, open, onClose }) {
           open={editModalOpen}
           onClose={() => setEditModalOpen(false)}
           initialData={lead}
+          onSuccess={refetchFollowups}
         />
       )}
     </>

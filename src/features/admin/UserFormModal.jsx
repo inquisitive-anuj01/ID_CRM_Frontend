@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Modal } from '@/components/ui/Modal'
@@ -14,6 +14,7 @@ const userSchema = z.object({
   role: z.enum(['admin', 'staff', 'manager']),
   designation: z.string().optional(),
   phone: z.string().optional(),
+  isActive: z.boolean().optional(),
 })
 
 export function UserFormModal({ open, onClose, onSubmit, user = null, isSubmitting = false }) {
@@ -22,6 +23,7 @@ export function UserFormModal({ open, onClose, onSubmit, user = null, isSubmitti
   const {
     register,
     handleSubmit,
+    control,
     reset,
     formState: { errors },
   } = useForm({
@@ -33,6 +35,7 @@ export function UserFormModal({ open, onClose, onSubmit, user = null, isSubmitti
       role: 'staff',
       designation: '',
       phone: '',
+      isActive: true,
     },
   })
 
@@ -44,6 +47,8 @@ export function UserFormModal({ open, onClose, onSubmit, user = null, isSubmitti
         role: user.role || 'staff',
         designation: user.designation || '',
         phone: user.mobile || user.phone || '',
+        isActive: user.isActive !== undefined ? Boolean(user.isActive) : true,
+        password: '',
       })
     } else {
       reset({
@@ -53,29 +58,31 @@ export function UserFormModal({ open, onClose, onSubmit, user = null, isSubmitti
         role: 'staff',
         designation: '',
         phone: '',
+        isActive: true,
       })
     }
   }, [user, reset])
 
   const handleFormSubmit = async (values) => {
-    const payload = {
-      name: values.name,
-      email: values.email,
-      role: values.role,
-      designation: values.designation || undefined,
-      mobile: values.phone || undefined,
-    }
-
-    if (isEdit) {
-      if (values.password) {
-        payload.password = values.password
+    try {
+      const payload = {
+        name: values.name.trim(),
+        email: values.email.trim(),
+        role: values.role,
+        designation: values.designation?.trim() || '',
+        mobile: values.phone?.trim() || '',
+        isActive: values.isActive !== undefined ? Boolean(values.isActive) : true,
       }
-    } else {
-      payload.password = values.password
-    }
 
-    await onSubmit(payload)
-    onClose()
+      if (values.password && values.password.trim().length > 0) {
+        payload.password = values.password.trim()
+      }
+
+      await onSubmit(payload)
+      onClose()
+    } catch (err) {
+      console.error('Failed to save user:', err)
+    }
   }
 
   return (
@@ -97,46 +104,74 @@ export function UserFormModal({ open, onClose, onSubmit, user = null, isSubmitti
           label="Email Address"
           type="email"
           required
-          disabled={isEdit}
           placeholder="rahul@company.com"
           {...register('email')}
           error={errors.email?.message}
         />
 
-        {!isEdit && (
-          <Input
-            label="Initial Password"
-            type="password"
-            required
-            placeholder="At least 8 characters"
-            {...register('password', {
-              required: 'Password is required',
-              minLength: { value: 8, message: 'Password must be at least 8 characters' },
-            })}
-            error={errors.password?.message}
-          />
-        )}
+        <Input
+          label={isEdit ? 'New Password (leave blank to keep current)' : 'Initial Password'}
+          type="password"
+          required={!isEdit}
+          placeholder={isEdit ? '•••••••• (leave blank to keep current)' : 'At least 6 characters'}
+          {...register('password')}
+          error={errors.password?.message}
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Select
-            label="Role"
-            required
-            {...register('role')}
-            error={errors.role?.message}
-            options={[
-              { value: 'staff', label: 'Staff / Sales / BD' },
-              { value: 'manager', label: 'Manager' },
-              { value: 'admin', label: 'Admin' },
-            ]}
+          <Controller
+            name="role"
+            control={control}
+            render={({ field }) => (
+              <Select
+                label="Role"
+                required
+                value={field.value}
+                onValueChange={field.onChange}
+                error={errors.role?.message}
+                options={[
+                  { value: 'staff', label: 'Staff / Sales / BD' },
+                  { value: 'manager', label: 'Manager' },
+                  { value: 'admin', label: 'Admin' },
+                ]}
+              />
+            )}
           />
 
+          {isEdit ? (
+            <Controller
+              name="isActive"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  label="Status"
+                  value={field.value ? 'true' : 'false'}
+                  onValueChange={(val) => field.onChange(val === 'true')}
+                  options={[
+                    { value: 'true', label: 'Active' },
+                    { value: 'false', label: 'Inactive' },
+                  ]}
+                />
+              )}
+            />
+          ) : (
+            <Input
+              label="Designation"
+              placeholder="e.g. Senior Lead Specialist"
+              {...register('designation')}
+              error={errors.designation?.message}
+            />
+          )}
+        </div>
+
+        {isEdit && (
           <Input
             label="Designation"
             placeholder="e.g. Senior Lead Specialist"
             {...register('designation')}
             error={errors.designation?.message}
           />
-        </div>
+        )}
 
         <Input
           label="Phone Number"

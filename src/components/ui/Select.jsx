@@ -10,9 +10,15 @@ export function Select({
   options = [],
   value,
   onValueChange,
+  onChange,
   disabled,
   className,
 }) {
+  const handleValueChange = (val) => {
+    if (onValueChange) onValueChange(val)
+    if (onChange) onChange({ target: { value: val } })
+  }
+
   return (
     <div className="flex flex-col gap-1">
       {label && (
@@ -21,7 +27,7 @@ export function Select({
           {required && <span className="ml-1 text-brand">*</span>}
         </label>
       )}
-      <RadixSelect.Root value={value} onValueChange={onValueChange} disabled={disabled}>
+      <RadixSelect.Root value={value || undefined} onValueChange={handleValueChange} disabled={disabled}>
         <RadixSelect.Trigger
           className={cn(
             'flex w-full items-center justify-between rounded-xl border border-line',

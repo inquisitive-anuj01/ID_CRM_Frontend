@@ -45,6 +45,7 @@ export function LeadDrawer({ leadId, open, onClose }) {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [followupModalOpen, setFollowupModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const [pendingStatusMove, setPendingStatusMove] = useState(null)
 
   const {
     lead,
@@ -59,6 +60,20 @@ export function LeadDrawer({ leadId, open, onClose }) {
   const { data: followups = [], isLoading: followupsLoading, refetch: refetchFollowups } = useLeadFollowups(leadId)
   const { data: history = [], isLoading: historyLoading } = useLeadHistory(leadId)
   const { statuses = [] } = useStatuses()
+
+  const handleStatusChangeRequest = async (payload) => {
+    const currentStatus = lead?.status?.key || (typeof lead?.status === 'string' ? lead?.status : 'new')
+    if (payload.status && payload.status !== currentStatus) {
+      setStatusModalOpen(false)
+      const targetStatusObj = statuses.find((s) => s.key === payload.status)
+      setPendingStatusMove({
+        targetStatusKey: payload.status,
+        targetStatusName: targetStatusObj?.name || payload.status,
+      })
+    } else {
+      setStatusModalOpen(false)
+    }
+  }
 
   const handleDelete = async () => {
     await deleteLead()
@@ -92,7 +107,15 @@ export function LeadDrawer({ leadId, open, onClose }) {
               <h2 className="text-lg font-black text-text truncate">
                 {lead?.customerName || lead?.name || 'Lead Details'}
               </h2>
-              {lead && <StatusPill status={statusDisplayName} color={statusColor} />}
+              {lead && (
+                <div
+                  className="cursor-pointer hover:opacity-85 transition-opacity"
+                  onClick={() => setStatusModalOpen(true)}
+                  title="Click to change status"
+                >
+                  <StatusPill status={statusDisplayName} color={statusColor} />
+                </div>
+              )}
             </div>
 
             {(lead?.companyName || lead?.company) && (
@@ -204,7 +227,7 @@ export function LeadDrawer({ leadId, open, onClose }) {
         open={statusModalOpen}
         onClose={() => setStatusModalOpen(false)}
         lead={lead}
-        onSubmit={updateStatus}
+        onSubmit={handleStatusChangeRequest}
       />
 
       <AssignModal
@@ -235,11 +258,26 @@ export function LeadDrawer({ leadId, open, onClose }) {
         onSuccess={refetchFollowups}
       />
 
+      {pendingStatusMove && (
+        <FollowupFormModal
+          open={Boolean(pendingStatusMove)}
+          lead={lead}
+          targetStatusKey={pendingStatusMove.targetStatusKey}
+          targetStatusName={pendingStatusMove.targetStatusName}
+          onClose={() => setPendingStatusMove(null)}
+          onSuccess={() => {
+            setPendingStatusMove(null)
+            refetchFollowups()
+          }}
+        />
+      )}
+
       {editModalOpen && (
         <LeadFormModal
           open={editModalOpen}
           onClose={() => setEditModalOpen(false)}
           initialData={lead}
+          onSuccess={refetchFollowups}
         />
       )}
     </>

@@ -14,6 +14,7 @@ import { useStatuses, useSources, useLabels } from '@/hooks/useMasters'
 import { useUsers } from '@/hooks/useUsers'
 import { useLeadMutations } from '@/hooks/useLeads'
 import { leadsApi } from '@/api/leads.api'
+import { FollowupFormModal } from './FollowupFormModal'
 import { AlertCircle } from 'lucide-react'
 
 export function LeadFormModal({ open, onClose, initialData = null, onSuccess }) {
@@ -26,6 +27,7 @@ export function LeadFormModal({ open, onClose, initialData = null, onSuccess }) 
 
   const [submitting, setSubmitting] = useState(false)
   const [duplicateWarning, setDuplicateWarning] = useState(null)
+  const [pendingFollowupTransition, setPendingFollowupTransition] = useState(null)
 
   const {
     register,
@@ -117,14 +119,14 @@ export function LeadFormModal({ open, onClose, initialData = null, onSuccess }) 
     customerName: values.name,
     mobile: values.mobile,
     countryCode: values.countryCode || '+91',
-    email: values.email || undefined,
-    companyName: values.company || undefined,
-    comment: values.notes || undefined,
-    source: values.source || undefined,
+    email: values.email?.trim() || '',
+    companyName: values.company?.trim() || '',
+    comment: values.notes?.trim() || '',
+    source: values.source || null,
     status: values.status || 'new',
-    assignedTo: values.assignedTo || undefined,
-    estimateAmount: values.estimateAmount || 0,
-    rating: values.rating || 0,
+    assignedTo: values.assignedTo || null,
+    estimateAmount: Number(values.estimateAmount) || 0,
+    rating: Number(values.rating) || 0,
     labels: (values.labels || []).map((id) => ({ label: id, amount: 0 })),
   })
 
@@ -132,27 +134,50 @@ export function LeadFormModal({ open, onClose, initialData = null, onSuccess }) 
     try {
       setSubmitting(true)
       const payload = buildPayload(values)
+
       if (isEdit) {
+        const currentStatus = initialData.status?.key || (typeof initialData.status === 'string' ? initialData.status : 'new')
+        const statusChanged = values.status && values.status !== currentStatus
+
+        if (statusChanged) {
+          // 1. First save all other lead details (excluding status until followup is logged)
+          const leadUpdatePayload = { ...payload }
+          delete leadUpdatePayload.status
+          await updateLead({ id: initialData._id, data: leadUpdatePayload })
+
+          const targetStatusObj = statuses.find((s) => s.key === values.status)
+          const targetStatusName = targetStatusObj?.name || values.status
+
+          // 2. Open mandatory FollowupFormModal to log followup and transition lead status
+          setPendingFollowupTransition({
+            lead: { ...initialData, ...payload },
+            targetStatusKey: values.status,
+            targetStatusName,
+          })
+          return
+        }
+
         await updateLead({ id: initialData._id, data: payload })
       } else {
         await createLead(payload)
       }
+
       if (onSuccess) onSuccess()
       onClose()
     } catch (err) {
       console.error(err)
-      // toast is handled by the mutation's onError
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={isEdit ? `Edit Lead: ${initialData?.customerName || initialData?.name || ''}` : 'Create New Lead'}
-    >
+    <>
+      <Modal
+        open={open && !pendingFollowupTransition}
+        onClose={onClose}
+        title={isEdit ? `Edit Lead: ${initialData?.customerName || initialData?.name || ''}` : 'Create New Lead'}
+      >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
         {duplicateWarning && (
           <div className="flex items-center gap-2 p-3 rounded-lg bg-warn/10 border border-warn/30 text-warn text-xs">
@@ -318,5 +343,25 @@ export function LeadFormModal({ open, onClose, initialData = null, onSuccess }) 
         </div>
       </form>
     </Modal>
+
+    {pendingFollowupTransition && (
+      <FollowupFormModal
+        open={Boolean(pendingFollowupTransition)}
+        lead={pendingFollowupTransition.lead}
+        targetStatusKey={pendingFollowupTransition.targetStatusKey}
+        targetStatusName={pendingFollowupTransition.targetStatusName}
+        onClose={() => {
+          setPendingFollowupTransition(null)
+          if (onSuccess) onSuccess()
+          onClose()
+        }}
+        onSuccess={() => {
+          setPendingFollowupTransition(null)
+          if (onSuccess) onSuccess()
+          onClose()
+        }}
+      />
+    )}
+  </>
   )
 }

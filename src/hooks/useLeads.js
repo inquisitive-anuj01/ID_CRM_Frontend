@@ -153,12 +153,14 @@ export function useLeadMutations() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => leadsApi.update(id, data),
-    onSuccess: (res) => {
+    onSuccess: (res, vars) => {
       // Invalidate the specific lead AND all list/board queries
-      const updatedId = res?.data?._id
+      const updatedId = res?.data?._id || vars?.id
       if (updatedId) {
         qc.invalidateQueries({ queryKey: qk.leads.one(updatedId) })
+        qc.invalidateQueries({ queryKey: ['lead', updatedId] })
       }
+      qc.invalidateQueries({ queryKey: ['lead'] })
       qc.invalidateQueries({ queryKey: ['leads'] })
       qc.invalidateQueries({ queryKey: ['dashboard'] })
       toast.success('Lead updated successfully')

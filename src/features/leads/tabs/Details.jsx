@@ -66,10 +66,15 @@ export function Details({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Status card */}
         <div className="p-3.5 rounded-xl border border-border bg-surface-2">
-          <div className="mb-1.5">
+          <div className="flex items-center justify-between mb-1.5">
             <span className="text-[11px] uppercase font-bold tracking-wider text-text-muted">Status</span>
+            <Button variant="ghost" size="xs" onClick={onOpenStatus} className="h-6 text-[11px] text-brand p-0 hover:bg-transparent hover:underline">
+              Change
+            </Button>
           </div>
-          <StatusPill status={statusDisplayName} color={statusColor} />
+          <div className="cursor-pointer inline-block" onClick={onOpenStatus}>
+            <StatusPill status={statusDisplayName} color={statusColor} />
+          </div>
           {lead.lossReason && (
             <p className="mt-1.5 text-[11px] text-danger">Reason: {lead.lossReason}</p>
           )}

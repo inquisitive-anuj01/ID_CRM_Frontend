@@ -10,15 +10,20 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useUsers } from '@/hooks/useUsers'
 import { UserFormModal } from './UserFormModal'
+import { Modal } from '@/components/ui/Modal'
 import { Plus, Search, Edit2, ShieldAlert, CheckCircle2, XCircle, KeyRound } from 'lucide-react'
 import { fmtDateTime } from '@/lib/dates'
+import { toast } from 'sonner'
 
 export function UsersPage() {
   const [search, setSearch] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [resetModalUser, setResetModalUser] = useState(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [resetting, setResetting] = useState(false)
 
-  const { users, isLoading, createUser, updateUser, toggleActive } = useUsers()
+  const { users, isLoading, createUser, updateUser, toggleActive, resetPassword } = useUsers()
 
   const filteredUsers = users.filter((u) => {
     const q = search.toLowerCase()
@@ -40,10 +45,32 @@ export function UsersPage() {
   }
 
   const handleSave = async (data) => {
-    if (selectedUser) {
-      await updateUser({ id: selectedUser._id, data })
-    } else {
-      await createUser(data)
+    try {
+      if (selectedUser) {
+        await updateUser({ id: selectedUser._id, data })
+      } else {
+        await createUser(data)
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault()
+    if (!newPassword || newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters')
+      return
+    }
+    try {
+      setResetting(true)
+      await resetPassword({ id: resetModalUser._id, data: { newPassword } })
+      setResetModalUser(null)
+      setNewPassword('')
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setResetting(false)
     }
   }
 
@@ -146,8 +173,22 @@ export function UsersPage() {
                           size="xs"
                           onClick={() => handleOpenEdit(u)}
                           aria-label="Edit"
+                          title="Edit User"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          onClick={() => {
+                            setResetModalUser(u)
+                            setNewPassword('')
+                          }}
+                          aria-label="Reset Password"
+                          title="Reset Password"
+                          className="text-text-muted hover:text-brand"
+                        >
+                          <KeyRound className="h-3.5 w-3.5" />
                         </Button>
                         <Button
                           variant={u.isActive ? 'ghost' : 'outline'}
@@ -173,6 +214,34 @@ export function UsersPage() {
         onSubmit={handleSave}
         user={selectedUser}
       />
+
+      <Modal
+        open={Boolean(resetModalUser)}
+        onClose={() => setResetModalUser(null)}
+        title={`Reset Password: ${resetModalUser?.name || ''}`}
+      >
+        <form onSubmit={handleResetPassword} className="space-y-4 pt-2">
+          <p className="text-xs text-text-muted">
+            Enter a new password for <strong className="text-text">{resetModalUser?.email}</strong>.
+          </p>
+          <Input
+            label="New Password"
+            type="password"
+            required
+            placeholder="At least 6 characters"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+          />
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => setResetModalUser(null)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="solid" disabled={resetting}>
+              {resetting ? 'Resetting...' : 'Update Password'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </Page>
   )
 }

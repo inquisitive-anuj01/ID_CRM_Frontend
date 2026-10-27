@@ -35,6 +35,7 @@ export function ChangePasswordModal({ open, onClose }) {
     try {
       setSubmitting(true)
       await authApi.changePassword({
+        currentPassword: values.oldPassword,
         oldPassword: values.oldPassword,
         newPassword: values.newPassword,
       })
