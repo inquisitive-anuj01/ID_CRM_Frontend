@@ -23,6 +23,7 @@ import {
 import { useUIStore } from '@/store/ui.store'
 import { useAuthStore } from '@/store/auth.store'
 import { useThemeStore } from '@/store/theme.store'
+import { disconnectSocket } from '@/lib/socket'
 import { isAdmin } from '@/lib/permissions'
 import http from '@/api/http'
 
@@ -232,6 +233,7 @@ export function CommandPalette() {
               <Command.Item
                 onSelect={() =>
                   runAction(() => {
+                    disconnectSocket()
                     logout()
                     navigate('/login')
                   })

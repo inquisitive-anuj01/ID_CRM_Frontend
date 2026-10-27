@@ -1,5 +1,15 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { queryClient } from '@/app/queryClient'
+
+export const clearAllAppCache = () => {
+  try {
+    queryClient.cancelQueries()
+    queryClient.clear()
+  } catch (err) {
+    console.error('[Auth] Error clearing query cache:', err)
+  }
+}
 
 export const useAuthStore = create(
   persist(
@@ -14,14 +24,19 @@ export const useAuthStore = create(
       setWorkspace: (workspace) => set({ workspace }),
       setLoading: (isLoading) => set({ isLoading }),
 
-      setAuth: ({ user, token, workspace }) =>
+      setAuth: ({ user, token, workspace }) => {
+        clearAllAppCache()
         set({
           user,
           token,
           ...(workspace !== undefined && { workspace }),
-        }),
+        })
+      },
 
-      logout: () => set({ token: null, user: null, workspace: null }),
+      logout: () => {
+        clearAllAppCache()
+        set({ token: null, user: null, workspace: null })
+      },
 
       isAuthenticated: () => !!get().token,
     }),
@@ -32,3 +47,4 @@ export const useAuthStore = create(
     }
   )
 )
+

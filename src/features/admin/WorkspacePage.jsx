@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { useAuthStore } from '@/store/auth.store'
 import { workspaceApi } from '@/api/workspace.api'
+import { disconnectSocket } from '@/lib/socket'
 import { Building2, Save, Trash2, AlertTriangle, Calendar, Users, Hash } from 'lucide-react'
 import { toast } from 'sonner'
 import { fmtDateTime } from '@/lib/dates'
@@ -55,6 +56,7 @@ export function WorkspacePage() {
       setDeleting(true)
       await workspaceApi.delete()
       toast.success('Workspace and all data permanently deleted')
+      disconnectSocket()
       logout()
       navigate('/login')
     } catch (err) {

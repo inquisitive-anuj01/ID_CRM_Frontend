@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/Dropdown'
 import { NotificationBell } from './NotificationBell'
 import { authApi } from '@/api/auth.api'
+import { disconnectSocket } from '@/lib/socket'
 import { isAdmin } from '@/lib/permissions'
 import { cn } from '@/lib/cn'
 
@@ -37,6 +38,7 @@ export function TopNav() {
 
   const handleLogout = async () => {
     try { await authApi.logout() } catch {}
+    disconnectSocket()
     logout()
     navigate('/login')
   }

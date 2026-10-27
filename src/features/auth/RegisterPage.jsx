@@ -37,7 +37,7 @@ const registerSchema = z
 
 export function RegisterPage() {
   const navigate = useNavigate()
-  const { setToken, setUser, setWorkspace } = useAuthStore()
+  const { setAuth } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -69,9 +69,7 @@ export function RegisterPage() {
         password: values.password,
       })
       const { user, workspace, accessToken } = res.data || {}
-      setToken(accessToken)
-      if (user) setUser(user)
-      if (workspace) setWorkspace(workspace)
+      setAuth({ user, token: accessToken, workspace })
       toast.success(`Workspace "${workspace?.name || values.companyName}" registered successfully!`)
       navigate('/dashboard')
     } catch (err) {

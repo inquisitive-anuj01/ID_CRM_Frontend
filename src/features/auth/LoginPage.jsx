@@ -18,7 +18,7 @@ const loginSchema = z.object({
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { setToken, setUser, setWorkspace } = useAuthStore()
+  const { setAuth } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
@@ -39,9 +39,7 @@ export function LoginPage() {
       setSubmitting(true)
       const res = await authApi.login(values)
       const { user, workspace, accessToken } = res.data || {}
-      setToken(accessToken)
-      if (user) setUser(user)
-      if (workspace) setWorkspace(workspace)
+      setAuth({ user, token: accessToken, workspace })
       toast.success(`Welcome back, ${user?.name || 'User'}!`)
       navigate('/dashboard')
     } catch (err) {
