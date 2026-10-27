@@ -54,6 +54,15 @@ export function useUsers(params = {}) {
     onError: (err) => toast.error(err.message || 'Failed to reset password'),
   })
 
+  const deleteMutation = useMutation({
+    mutationFn: (id) => usersApi.delete(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['users'] })
+      toast.success('User deleted permanently from database')
+    },
+    onError: (err) => toast.error(err.message || 'Failed to delete user'),
+  })
+
   return {
     users: listQuery.data || [],
     userOptions: optionsQuery.data || [],
@@ -61,6 +70,7 @@ export function useUsers(params = {}) {
     createUser: createMutation.mutateAsync,
     updateUser: updateMutation.mutateAsync,
     toggleActive: toggleActiveMutation.mutateAsync,
+    deleteUser: deleteMutation.mutateAsync,
     resetPassword: resetPasswordMutation.mutateAsync,
   }
 }

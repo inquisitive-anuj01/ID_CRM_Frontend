@@ -6,20 +6,29 @@ export const useAuthStore = create(
     (set, get) => ({
       token: null,
       user: null,
+      workspace: null,
       isLoading: false,
 
       setToken: (token) => set({ token }),
       setUser: (user) => set({ user }),
+      setWorkspace: (workspace) => set({ workspace }),
       setLoading: (isLoading) => set({ isLoading }),
 
-      logout: () => set({ token: null, user: null }),
+      setAuth: ({ user, token, workspace }) =>
+        set({
+          user,
+          token,
+          ...(workspace !== undefined && { workspace }),
+        }),
+
+      logout: () => set({ token: null, user: null, workspace: null }),
 
       isAuthenticated: () => !!get().token,
     }),
     {
       name: 'auth-store',
-      // Persist both token and user so sessions survive page refresh
-      partialize: (state) => ({ token: state.token, user: state.user }),
+      // Persist token, user, and workspace so sessions survive page refresh
+      partialize: (state) => ({ token: state.token, user: state.user, workspace: state.workspace }),
     }
   )
 )

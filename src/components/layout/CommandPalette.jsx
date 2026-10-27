@@ -18,6 +18,7 @@ import {
   FileText,
   Calendar,
   CheckSquare,
+  Building2,
 } from 'lucide-react'
 import { useUIStore } from '@/store/ui.store'
 import { useAuthStore } from '@/store/auth.store'
@@ -161,6 +162,13 @@ export function CommandPalette() {
 
             {isAdmin(user) && (
               <Command.Group heading="Admin" className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-text-muted">
+                <Command.Item
+                  onSelect={() => runAction(() => navigate('/admin/workspace'))}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs text-text cursor-pointer hover:bg-brand hover:text-black transition-colors"
+                >
+                  <Building2 className="h-4 w-4" />
+                  <span>Workspace Settings & Danger Zone</span>
+                </Command.Item>
                 <Command.Item
                   onSelect={() => runAction(() => navigate('/admin/users'))}
                   className="flex items-center gap-3 rounded-lg px-3 py-2 text-xs text-text cursor-pointer hover:bg-brand hover:text-black transition-colors"

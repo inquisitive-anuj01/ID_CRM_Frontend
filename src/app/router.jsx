@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { LoginPage } from '@/features/auth/LoginPage'
+import { RegisterPage } from '@/features/auth/RegisterPage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { LeadsPage } from '@/features/leads/LeadsPage'
 import { MyFollowupsPage } from '@/features/followups/MyFollowupsPage'
@@ -11,6 +12,7 @@ import { UsersPage } from '@/features/admin/UsersPage'
 import { MastersPage } from '@/features/admin/MastersPage'
 import { SettingsPage } from '@/features/admin/SettingsPage'
 import { ImportPage } from '@/features/admin/ImportPage'
+import { WorkspacePage } from '@/features/admin/WorkspacePage'
 import { GenericModulePage } from '@/features/phase2/GenericModulePage'
 import { CustomersPage } from '@/features/customers/CustomersPage'
 import { ForbiddenPage } from '@/features/misc/ForbiddenPage'
@@ -38,6 +40,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />,
   },
   {
     path: '/',
@@ -77,6 +83,14 @@ export const router = createBrowserRouter([
       },
 
       // Admin routes
+      {
+        path: 'admin/workspace',
+        element: (
+          <AdminRoute>
+            <WorkspacePage />
+          </AdminRoute>
+        ),
+      },
       {
         path: 'admin/users',
         element: (

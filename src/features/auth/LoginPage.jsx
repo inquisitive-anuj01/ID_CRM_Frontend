@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Lock, Mail, Eye, EyeOff, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react'
+import { Lock, Mail, Eye, EyeOff, ShieldCheck, ArrowRight } from 'lucide-react'
 import { authApi } from '@/api/auth.api'
 import { useAuthStore } from '@/store/auth.store'
 import { Marker } from '@/components/ui/Marker'
@@ -18,7 +18,7 @@ const loginSchema = z.object({
 
 export function LoginPage() {
   const navigate = useNavigate()
-  const { setToken, setUser } = useAuthStore()
+  const { setToken, setUser, setWorkspace } = useAuthStore()
   const [showPassword, setShowPassword] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
@@ -38,9 +38,10 @@ export function LoginPage() {
     try {
       setSubmitting(true)
       const res = await authApi.login(values)
-      const { user, accessToken } = res.data || {}
+      const { user, workspace, accessToken } = res.data || {}
       setToken(accessToken)
       if (user) setUser(user)
+      if (workspace) setWorkspace(workspace)
       toast.success(`Welcome back, ${user?.name || 'User'}!`)
       navigate('/dashboard')
     } catch (err) {
@@ -68,14 +69,16 @@ export function LoginPage() {
       <div className="relative w-full max-w-md">
         {/* Brand header */}
         <div className="mb-8 text-center flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-brand/30 bg-brand/10 text-brand text-xs font-semibold mb-4">
-            <Sparkles className="h-3.5 w-3.5" />
+          {/* Inquisitive Digital Logo */}
+          <img
+            src="/ID.png"
+            alt="Inquisitive Digital"
+            className="h-40 w-40 object-contain drop-shadow-[0_4px_12px_rgba(222,177,4,0.2)]"
+          />
+
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-brand/30 bg-brand/10 text-brand text-xs font-semibold mb-3">
             <span>Inquisitive Digital Platform</span>
           </div>
-
-          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight flex items-center justify-center gap-2">
-            ID <Marker>CRM</Marker>
-          </h1>
           <p className="mt-3 text-sm text-[#CAD5E2]">
             High-velocity sales management & pipeline acceleration
           </p>
@@ -116,7 +119,7 @@ export function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2.5 text-[#CAD5E2]/60 hover:text-white"
+                  className="absolute right-3 top-2.5 text-[#CAD5E2]/60 hover:text-white cursor-pointer"
                   tabIndex={-1}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -141,12 +144,23 @@ export function LoginPage() {
             </div>
           </form>
 
-          {/* Secure access note */}
-          <div className="mt-6 pt-5 border-t border-[#262626] flex items-center justify-center text-xs text-[#CAD5E2]">
-            <span className="flex items-center gap-1.5 text-xs text-white/70">
+          {/* Create Workspace Link */}
+          <div className="mt-6 pt-5 border-t border-[#262626] text-center space-y-3">
+            <p className="text-sm text-neutral-300">
+              New here?{' '}
+              <button
+                type="button"
+                onClick={() => navigate('/register')}
+                className="text-brand hover:underline font-semibold cursor-pointer inline-flex items-center gap-1"
+              >
+                Create your workspace & manage leads →
+              </button>
+            </p>
+
+            <div className="flex items-center justify-center text-xs text-white/60 gap-1.5 pt-1">
               <ShieldCheck className="h-4 w-4 text-brand" />
               Role-based secure access
-            </span>
+            </div>
           </div>
         </div>
       </div>

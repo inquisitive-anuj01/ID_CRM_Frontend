@@ -11,7 +11,7 @@ import { User, Mail, Shield, Calendar, KeyRound, Sparkles } from 'lucide-react'
 import { fmtDateTime } from '@/lib/dates'
 
 export function ProfilePage() {
-  const { user } = useAuthStore()
+  const { user, workspace } = useAuthStore()
   const [passwordModalOpen, setPasswordModalOpen] = useState(false)
 
   return (
@@ -87,12 +87,12 @@ export function ProfilePage() {
             </h3>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-4 rounded-xl border border-border bg-surface-2">
-                <span className="text-[11px] text-text-muted uppercase font-bold tracking-wider">Platform</span>
-                <p className="mt-1 text-sm font-semibold text-text">Inquisitive Digital ID CRM</p>
+                <span className="text-[11px] text-text-muted uppercase font-bold tracking-wider">Company Workspace</span>
+                <p className="mt-1 text-sm font-semibold text-text">{workspace?.name || 'Inquisitive Digital'}</p>
               </div>
               <div className="p-4 rounded-xl border border-border bg-surface-2">
-                <span className="text-[11px] text-text-muted uppercase font-bold tracking-wider">Version</span>
-                <p className="mt-1 text-sm font-semibold text-text">v2.4.0 (Enterprise)</p>
+                <span className="text-[11px] text-text-muted uppercase font-bold tracking-wider">Workspace Slug</span>
+                <p className="mt-1 text-sm font-semibold text-text font-mono">{workspace?.slug || 'inquisitive-digital'}</p>
               </div>
             </div>
           </div>

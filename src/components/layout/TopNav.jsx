@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, BarChart2, Bell, Sun, Moon, Plus,
   ChevronDown, LogOut, User, Lock, Settings, Tag, Layers,
   BookOpen, ListTodo, StickyNote, AlarmClock, CalendarDays,
-  UserCheck, Import, Command
+  UserCheck, Import, Command, Building2
 } from 'lucide-react'
 import { useAuthStore } from '@/store/auth.store'
 import { useThemeStore } from '@/store/theme.store'
@@ -29,7 +29,7 @@ const navLinks = [
 ]
 
 export function TopNav() {
-  const { user, logout } = useAuthStore()
+  const { user, workspace, logout } = useAuthStore()
   const { theme, toggleTheme } = useThemeStore()
   const { setCommandPaletteOpen } = useUIStore()
   const navigate = useNavigate()
@@ -41,16 +41,26 @@ export function TopNav() {
     navigate('/login')
   }
 
+  const companyInitials = (workspace?.name || 'CRM')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase() || 'ID'
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-line bg-bg/80 backdrop-blur-md">
       <Page>
         <div className="flex h-16 items-center gap-4">
-          {/* Logo */}
-          <Link to="/dashboard" className="flex items-center gap-2 shrink-0">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand font-black text-black text-sm">
-              ID
+          {/* Logo with dynamic company name */}
+          <Link to="/dashboard" className="flex items-center gap-2.5 shrink-0 group">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand font-black text-black text-xs uppercase tracking-tight shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+              {companyInitials}
             </span>
-            <span className="hidden font-black text-ink sm:block">CRM</span>
+            <span className="font-black text-ink text-sm sm:text-base tracking-tight truncate max-w-[140px] sm:max-w-[220px]">
+              {workspace?.name || 'CRM'}
+            </span>
           </Link>
 
           {/* Desktop nav */}
@@ -112,6 +122,7 @@ export function TopNav() {
                   </button>
                 </DropdownTrigger>
                 <DropdownContent align="start">
+                  <DropdownItem onSelect={() => navigate('/admin/workspace')} icon={Building2}>Workspace</DropdownItem>
                   <DropdownItem onSelect={() => navigate('/admin/users')} icon={Users}>Users</DropdownItem>
                   <DropdownItem onSelect={() => navigate('/admin/masters')} icon={Tag}>Masters</DropdownItem>
                   <DropdownItem onSelect={() => navigate('/admin/settings')} icon={Settings}>Settings</DropdownItem>
@@ -179,10 +190,16 @@ export function TopNav() {
                 </button>
               </DropdownTrigger>
               <DropdownContent>
-                <DropdownLabel>{user?.email}</DropdownLabel>
+                <DropdownLabel>
+                  <p className="font-bold text-text truncate">{workspace?.name || 'Workspace'}</p>
+                  <p className="text-[10px] text-text-muted truncate">{user?.email}</p>
+                </DropdownLabel>
                 <DropdownSeparator />
                 <DropdownItem onSelect={() => navigate('/profile')} icon={User}>Profile</DropdownItem>
                 <DropdownItem onSelect={() => navigate('/profile?tab=password')} icon={Lock}>Change Password</DropdownItem>
+                {isAdmin(user) && (
+                  <DropdownItem onSelect={() => navigate('/admin/workspace')} icon={Building2}>Workspace Settings</DropdownItem>
+                )}
                 <DropdownSeparator />
                 <DropdownItem onSelect={handleLogout} icon={LogOut} className="text-[var(--danger)]">
                   Logout
