@@ -54,26 +54,27 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-line bg-bg/80 backdrop-blur-md">
       <Page>
-        <div className="flex h-16 items-center gap-4">
-          {/* Logo with dynamic company name */}
-          <Link to="/dashboard" className="flex items-center gap-2.5 shrink-0 group">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand font-black text-black text-xs uppercase tracking-tight shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+        <div className="flex h-14 items-center gap-2 min-w-0">
+
+          {/* Logo — shrinks company name text on smaller screens */}
+          <Link to="/dashboard" className="flex items-center gap-2 shrink-0 group min-w-0 max-w-[180px] xl:max-w-[240px]">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand font-black text-black text-[10px] uppercase tracking-tight shrink-0 shadow-sm group-hover:scale-105 transition-transform">
               {companyInitials}
             </span>
-            <span className="font-black text-ink text-sm sm:text-base tracking-tight truncate max-w-[140px] sm:max-w-[220px]">
+            <span className="font-black text-ink tracking-tight truncate text-[11px] xl:text-sm leading-tight">
               {workspace?.name || 'CRM'}
             </span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-1 ml-4">
+          {/* Desktop nav — compress spacing so long names don't overflow */}
+          <nav className="hidden lg:flex items-center gap-0.5 ml-2 shrink-0">
             {navLinks.map(({ to, label }) => (
               <NavLink
                 key={to}
                 to={to}
                 className={({ isActive }) =>
                   cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors',
+                    'px-2 xl:px-3 py-1.5 rounded-lg text-[10px] xl:text-xs font-bold uppercase tracking-wider xl:tracking-widest transition-colors whitespace-nowrap',
                     isActive
                       ? 'bg-brand text-black'
                       : 'text-muted hover:text-ink hover:bg-ink/5'
@@ -87,8 +88,8 @@ export function TopNav() {
             {/* Work dropdown */}
             <Dropdown>
               <DropdownTrigger asChild>
-                <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest text-muted hover:text-ink hover:bg-ink/5 transition-colors">
-                  Work <ChevronDown size={12} />
+                <button className="flex items-center gap-0.5 px-2 xl:px-3 py-1.5 rounded-lg text-[10px] xl:text-xs font-bold uppercase tracking-wider xl:tracking-widest text-muted hover:text-ink hover:bg-ink/5 transition-colors whitespace-nowrap">
+                  Work <ChevronDown size={11} />
                 </button>
               </DropdownTrigger>
               <DropdownContent align="start">
@@ -105,7 +106,7 @@ export function TopNav() {
               to="/customers"
               className={({ isActive }) =>
                 cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-colors',
+                  'px-2 xl:px-3 py-1.5 rounded-lg text-[10px] xl:text-xs font-bold uppercase tracking-wider xl:tracking-widest transition-colors whitespace-nowrap',
                   isActive
                     ? 'bg-brand text-black'
                     : 'text-muted hover:text-ink hover:bg-ink/5'
@@ -119,8 +120,8 @@ export function TopNav() {
             {isAdmin(user) && (
               <Dropdown>
                 <DropdownTrigger asChild>
-                  <button className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest text-muted hover:text-ink hover:bg-ink/5 transition-colors">
-                    Admin <ChevronDown size={12} />
+                  <button className="flex items-center gap-0.5 px-2 xl:px-3 py-1.5 rounded-lg text-[10px] xl:text-xs font-bold uppercase tracking-wider xl:tracking-widest text-muted hover:text-ink hover:bg-ink/5 transition-colors whitespace-nowrap">
+                    Admin <ChevronDown size={11} />
                   </button>
                 </DropdownTrigger>
                 <DropdownContent align="start">
@@ -134,26 +135,27 @@ export function TopNav() {
             )}
           </nav>
 
-          <div className="flex-1" />
+          {/* Spacer pushes right actions to the end */}
+          <div className="flex-1 min-w-0" />
 
-          {/* Right actions */}
-          <div className="flex items-center gap-2">
+          {/* Right actions — tight gap, no wrapping */}
+          <div className="flex items-center gap-1.5 shrink-0">
             {/* Command palette trigger */}
             <button
               onClick={() => setCommandPaletteOpen(true)}
-              className="hidden sm:flex items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 py-1.5 text-xs text-muted hover:border-brand transition-colors"
+              className="hidden sm:flex items-center gap-1.5 rounded-lg border border-line bg-surface-2 px-2.5 py-1.5 text-[10px] xl:text-xs text-muted hover:border-brand transition-colors whitespace-nowrap"
               title="Search (⌘K)"
             >
-              <Command size={12} />
-              <span className="hidden md:block">Search</span>
-              <kbd className="hidden md:block rounded bg-surface px-1 text-[10px] border border-line">⌘K</kbd>
+              <Command size={11} />
+              <span className="hidden xl:block">Search</span>
+              <kbd className="hidden xl:block rounded bg-surface px-1 text-[10px] border border-line">⌘K</kbd>
             </button>
 
             {/* Quick add */}
             <Dropdown>
               <DropdownTrigger asChild>
-                <Button size="icon" className="bg-brand text-black shadow-pop hover:bg-[var(--brand-hover)]">
-                  <Plus size={18} />
+                <Button size="icon" className="h-8 w-8 bg-brand text-black shadow-pop hover:bg-[var(--brand-hover)]">
+                  <Plus size={16} />
                 </Button>
               </DropdownTrigger>
               <DropdownContent>
@@ -174,21 +176,21 @@ export function TopNav() {
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-surface-2 text-muted hover:text-brand transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-surface-2 text-muted hover:text-brand transition-colors shrink-0"
               title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
             >
-              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
             </button>
 
             {/* Avatar / user menu */}
             <Dropdown>
               <DropdownTrigger asChild>
-                <button className="flex items-center gap-2 rounded-full border border-line p-1 pr-2 hover:border-brand transition-colors">
+                <button className="flex items-center gap-1.5 rounded-full border border-line p-1 pr-2 hover:border-brand transition-colors shrink-0">
                   <Avatar name={user?.name} size="xs" />
-                  <span className="hidden sm:block text-xs font-bold text-ink max-w-[80px] truncate">
+                  <span className="hidden sm:block text-[10px] xl:text-xs font-bold text-ink max-w-[60px] xl:max-w-[80px] truncate">
                     {user?.name?.split(' ')[0]}
                   </span>
-                  <ChevronDown size={12} className="text-muted" />
+                  <ChevronDown size={11} className="text-muted" />
                 </button>
               </DropdownTrigger>
               <DropdownContent>
