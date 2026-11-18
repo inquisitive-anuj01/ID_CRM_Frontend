@@ -23,20 +23,20 @@ export function SettingsPage() {
   useEffect(() => {
     if (settings) {
       reset({
-        startHour: settings.startHour ?? 9,
-        endHour: settings.endHour ?? 21,
+        startHour:           settings.startHour           ?? 9,
+        endHour:             settings.endHour             ?? 21,
         maxFollowupGapHours: settings.maxFollowupGapHours ?? 48,
-        autoReassignHours: settings.autoReassignHours ?? 24,
+        autoReassignHours:   settings.autoReassignHours   ?? 24,
       })
     }
   }, [settings, reset])
 
   const onSubmit = async (values) => {
     await updateSettings({
-      startHour: Number(values.startHour),
-      endHour: Number(values.endHour),
+      startHour:           Number(values.startHour),
+      endHour:             Number(values.endHour),
       maxFollowupGapHours: Number(values.maxFollowupGapHours),
-      autoReassignHours: Number(values.autoReassignHours),
+      autoReassignHours:   Number(values.autoReassignHours),
     })
   }
 

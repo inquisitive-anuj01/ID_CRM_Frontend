@@ -140,7 +140,8 @@ export function LeadFormModal({ open, onClose, initialData = null, onSuccess }) 
         const statusChanged = values.status && values.status !== currentStatus
 
         if (statusChanged) {
-          // 1. First save all other lead details (excluding status until followup is logged)
+          // 1. First save all other lead details (excluding status — status will be changed
+          //    after the mandatory followup is logged via FollowupFormModal)
           const leadUpdatePayload = { ...payload }
           delete leadUpdatePayload.status
           await updateLead({ id: initialData._id, data: leadUpdatePayload })
@@ -148,9 +149,10 @@ export function LeadFormModal({ open, onClose, initialData = null, onSuccess }) 
           const targetStatusObj = statuses.find((s) => s.key === values.status)
           const targetStatusName = targetStatusObj?.name || values.status
 
-          // 2. Open mandatory FollowupFormModal to log followup and transition lead status
+          // 2. Open FollowupFormModal — pass the REAL lead object so _id is correct
+          //    Merge initialData with the freshly saved fields for display accuracy
           setPendingFollowupTransition({
-            lead: { ...initialData, ...payload },
+            lead: { ...initialData, ...leadUpdatePayload },
             targetStatusKey: values.status,
             targetStatusName,
           })

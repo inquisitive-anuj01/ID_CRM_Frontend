@@ -11,7 +11,17 @@ import { useFollowups } from '@/hooks/useFollowups'
 import { leadsApi } from '@/api/leads.api'
 import { computePolicy } from '@/lib/policy'
 import { toast } from 'sonner'
-import { PhoneCall, Calendar, Paperclip, Mic, ShieldAlert, CheckCircle2, ArrowRight } from 'lucide-react'
+import { PhoneCall, Calendar, Paperclip, Mic, ShieldAlert, CheckCircle2, ArrowRight, XCircle } from 'lucide-react'
+
+const CANCEL_REASONS = [
+  { value: '', label: 'Select reason...' },
+  { value: 'High Price', label: 'Budget / High Price' },
+  { value: 'Competitor Chosen', label: 'Competitor Chosen' },
+  { value: 'No Requirement', label: 'No Requirement / Dropped' },
+  { value: 'Unresponsive', label: 'Unresponsive / Not Reachable' },
+  { value: 'Quality Concern', label: 'Quality / Product Concern' },
+  { value: 'Other', label: 'Other Reason' },
+]
 
 export function FollowupFormModal({
   open,
@@ -24,12 +34,18 @@ export function FollowupFormModal({
   const { categories } = useCategories()
   const { createFollowup } = useFollowups()
 
+  const isCancel = targetStatusKey === 'cancel'
+
   const [category, setCategory] = useState('')
   const [remarks, setRemarks] = useState('')
   const [nextFollowupDate, setNextFollowupDate] = useState(null)
   const [audioBlob, setAudioBlob] = useState(null)
   const [files, setFiles] = useState([])
   const [submitting, setSubmitting] = useState(false)
+
+  // Cancel reason state (only relevant when moving to cancel)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelRemarks, setCancelRemarks] = useState('')
 
   // Ensure default category is selected once categories load
   const selectedCategory = category || categories[0]?._id || ''
@@ -45,6 +61,12 @@ export function FollowupFormModal({
     e.preventDefault()
     if (!remarks.trim() && !audioBlob) {
       toast.error('Please add discussion remarks or record a voice note.')
+      return
+    }
+
+    // Validate cancel reason when moving to cancel
+    if (isCancel && !cancelReason) {
+      toast.error('Please select a cancellation reason before proceeding.')
       return
     }
 
@@ -69,7 +91,17 @@ export function FollowupFormModal({
 
       // 2. If transitioning status, update lead status now
       if (targetStatusKey) {
-        await leadsApi.status(lead._id, { status: targetStatusKey })
+        // Build the full cancelReason string when cancelling
+        const fullCancelReason = isCancel
+          ? cancelRemarks.trim()
+            ? `${cancelReason}: ${cancelRemarks.trim()}`
+            : cancelReason
+          : undefined
+
+        await leadsApi.status(lead._id, {
+          status: targetStatusKey,
+          ...(isCancel && { cancelReason: fullCancelReason }),
+        })
         toast.success(`Followup logged & lead moved to ${targetStatusName || targetStatusKey}!`)
       } else {
         toast.success('Followup logged successfully')
@@ -99,17 +131,31 @@ export function FollowupFormModal({
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
         {/* Status Transition Alert Banner */}
         {targetStatusName && (
-          <div className="flex items-center gap-2.5 p-3 rounded-xl bg-brand/15 border border-brand/40 text-text text-xs">
-            <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-brand text-black font-black text-[11px] shrink-0">
-              <ArrowRight className="h-3 w-3" />
+          <div
+            className={`flex items-center gap-2.5 p-3 rounded-xl border text-text text-xs ${
+              isCancel
+                ? 'bg-red-500/10 border-red-500/40'
+                : 'bg-brand/15 border-brand/40'
+            }`}
+          >
+            <span
+              className={`inline-flex items-center justify-center h-5 w-5 rounded-full font-black text-[11px] shrink-0 ${
+                isCancel ? 'bg-red-500 text-white' : 'bg-brand text-black'
+              }`}
+            >
+              {isCancel ? <XCircle className="h-3 w-3" /> : <ArrowRight className="h-3 w-3" />}
             </span>
             <div className="flex-1">
-              <span className="font-bold text-brand">Pipeline Transition: </span>
+              <span className={`font-bold ${isCancel ? 'text-red-500' : 'text-brand'}`}>
+                {isCancel ? 'Cancelling Lead: ' : 'Pipeline Transition: '}
+              </span>
               <span>
                 Move lead to <span className="font-bold underline text-text">{targetStatusName}</span>
               </span>
               <p className="text-[11px] text-text-muted mt-0.5">
-                A followup log is required before updating this lead's status.
+                {isCancel
+                  ? 'Please log a final followup and provide a cancellation reason.'
+                  : 'A followup log is required before updating this lead\'s status.'}
               </p>
             </div>
           </div>
@@ -168,6 +214,32 @@ export function FollowupFormModal({
           rows={3}
         />
 
+        {/* ── Cancellation Reason (only when moving to cancel) ── */}
+        {isCancel && (
+          <div className="space-y-3 p-4 rounded-xl bg-red-500/5 border border-red-500/20">
+            <p className="text-xs font-bold uppercase tracking-wider text-red-500 flex items-center gap-1.5">
+              <XCircle className="h-3.5 w-3.5" />
+              Cancellation Reason
+            </p>
+
+            <Select
+              label="Primary Reason"
+              required
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              options={CANCEL_REASONS}
+            />
+
+            <Textarea
+              label="Additional Details (Optional)"
+              value={cancelRemarks}
+              onChange={(e) => setCancelRemarks(e.target.value)}
+              placeholder="Any extra context on why this lead is being cancelled..."
+              rows={2}
+            />
+          </div>
+        )}
+
         {/* Voice Note Recorder */}
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wider text-text mb-1.5 flex items-center gap-1.5">
@@ -190,7 +262,12 @@ export function FollowupFormModal({
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" variant="solid" disabled={submitting}>
+          <Button
+            type="submit"
+            variant="solid"
+            disabled={submitting}
+            className={isCancel ? 'bg-red-500 hover:bg-red-600 text-white' : ''}
+          >
             {submitting
               ? 'Saving...'
               : targetStatusName
@@ -202,3 +279,4 @@ export function FollowupFormModal({
     </Modal>
   )
 }
+
